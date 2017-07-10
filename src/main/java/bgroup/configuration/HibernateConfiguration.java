@@ -4,6 +4,7 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
+import bgroup.app.MainApp;
 import bgroup.service.UserFromUtmService;
 import bgroup.service.UserFromUtmServiceImpl;
 import org.hibernate.SessionFactory;
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableTransactionManagement
 @ComponentScan({ "bgroup.configuration" })
-@PropertySource(value = { "classpath:jdbc.properties" })
+//@PropertySource(value = { "classpath:jdbc.properties" })
 public class HibernateConfiguration {
 
     @Autowired
@@ -39,10 +40,10 @@ public class HibernateConfiguration {
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(environment.getRequiredProperty("jdbc.driverClassName"));
-        dataSource.setUrl(environment.getRequiredProperty("jdbc.url"));
-        dataSource.setUsername(environment.getRequiredProperty("jdbc.username"));
-        dataSource.setPassword(environment.getRequiredProperty("jdbc.password"));
+        dataSource.setDriverClassName(MainApp.jdbcDriverClassName);
+        dataSource.setUrl(MainApp.jdbcUrl);
+        dataSource.setUsername(MainApp.jdbcUserName);
+        dataSource.setPassword(MainApp.jdbcPassword);
         return dataSource;
     }
     
