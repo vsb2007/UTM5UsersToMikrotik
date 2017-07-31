@@ -18,9 +18,9 @@ import java.util.List;
  * sshUtmUsersToMikrotik
  */
 @Repository("userFromUtmDao")
-public class UserFromUtmDaoImpl extends AbstractDao<Integer, UserFromUtm> implements UserFromUtmDao  {
+public class UserFromUtmDaoImpl extends AbstractDao<Integer, UserFromUtm> implements UserFromUtmDao {
     static final Logger logger = LoggerFactory.getLogger(UserFromUtmDaoImpl.class);
-    @Override
+
     public List<UserFromUtm> getUserFromUtmList() {
         Session session = getSession();
 

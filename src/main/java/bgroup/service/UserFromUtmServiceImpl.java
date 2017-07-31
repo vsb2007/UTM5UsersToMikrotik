@@ -24,9 +24,9 @@ public class UserFromUtmServiceImpl implements UserFromUtmService {
     @Autowired
     private UserFromUtmDaoImpl userFromUtmDao;
 
-    @Override
+    //@Override
     public List<UserFromUtm> getUserList() {
-        if (userFromUtmDao==null){
+        if (userFromUtmDao == null) {
             logger.error("error2");
             //userFromUtmDao = new UserFromUtmDaoImpl();
         }

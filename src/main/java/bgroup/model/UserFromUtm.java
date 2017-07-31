@@ -28,7 +28,7 @@ public class UserFromUtm {
         this.id = id;
     }
 
-    public int getGroupId() {
+    public Integer getGroupId() {
         return groupId;
     }
 
@@ -58,5 +58,16 @@ public class UserFromUtm {
 
     public void setMask(String mask) {
         this.mask = mask;
+    }
+
+    @Override
+    public String toString() {
+        return this.login + " " +
+                this.id + " " +
+                this.groupId + " " +
+                this.groupName + " " +
+                this.ip + " " +
+                this.mask
+                ;
     }
 }
