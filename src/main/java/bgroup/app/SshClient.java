@@ -1,6 +1,9 @@
 package bgroup.app;
 
+import bgroup.model.MikrotikIp;
 import com.jcraft.jsch.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,22 +13,29 @@ import java.io.InputStream;
  * sshUtmUsersToMikrotik
  */
 public class SshClient {
+    static final Logger logger = LoggerFactory.getLogger(SshClient.class);
     private static final int SSH_PORT = 22;
     private static final int CONNECTION_TIMEOUT = 10000;
     private static final int BUFFER_SIZE = 1024;
 
-    public String connectAndExecuteListCommand(String host, String username, String password, String command) {
-        String response = "no data";
+    public String getResponseFromHost(String host, String username,
+                                      String password, String command) {
+        String response = null;
         try {
-            Session session = initSession(host, username, password);
+            Session session = null;
+            session = initSession(host, username, password);
             Channel channel = initChannel(command, session);
             InputStream in = channel.getInputStream();
             channel.connect();
             response = getDataFromChannel(channel, in);
+            in.close();
+            channel.getExitStatus();
             channel.disconnect();
+            //closeConnection();
             session.disconnect();
         } catch (Exception e) {
-            System.out.println(e.getStackTrace().toString());
+            logger.error(e.toString());
+            return null;
         }
         return response;
     }
@@ -39,6 +49,11 @@ public class SshClient {
         session.setConfig("StrictHostKeyChecking", "no");
         session.connect(CONNECTION_TIMEOUT);
         return session;
+    }
+
+    public String getResponseFromHost(MikrotikIp mikrotikIp, String command) {
+        return getResponseFromHost(mikrotikIp.getIp(), mikrotikIp.getUserName(), mikrotikIp.getPassword()
+                , command);
     }
 
     public class MyUserInfo implements UserInfo {
@@ -101,7 +116,7 @@ public class SshClient {
             if (channel.isClosed()) {
                 int exitStatus = channel.getExitStatus();
                 if (exitStatus != 0)
-                    System.out.println("exit-status: " + exitStatus);
+                    logger.info("exit-status: " + exitStatus);
                 break;
             }
             trySleep(1000);
@@ -113,7 +128,7 @@ public class SshClient {
         try {
             Thread.sleep(sleepTimeInMilliseconds);
         } catch (Exception e) {
-            System.out.println(e.getStackTrace().toString());
+            logger.error(e.toString());
         }
     }
 }

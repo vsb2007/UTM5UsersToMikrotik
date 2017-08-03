@@ -17,7 +17,6 @@ public class MainApp {
     public static String HOSTNAME = "";
     public static String USERNAME = "";
     public static String PASSWORD = "";
-    public static String dropLIST = "";
     public static String dbHOSTNAME = "";
     public static String dbNAME = "";
 
@@ -33,6 +32,15 @@ public class MainApp {
     public static List<MikrotikIp> mikrotikIpList = new LinkedList<MikrotikIp>();
 
     public static void main(String[] args) {
+        /*
+        String str = "*89503367777 отец";
+        str = str.trim().replaceAll(" |\\-|\\.", "");
+        str = str.replaceAll("[^0-9]","");
+
+        System.out.println(str);
+
+        System.exit(-1);
+        */
         try {
             ParseArguments.parseArguments(args[0]);
         } catch (Exception e) {
@@ -54,7 +62,7 @@ public class MainApp {
         String command;
         String lines = null;
         command = "ip firewall address-list print terse";
-        //lines = manager.connectAndExecuteListCommand(HOSTNAME, USERNAME, PASSWORD, command);
+        //lines = manager.getResponseFromHost(HOSTNAME, USERNAME, PASSWORD, command);
         //logger.debug(lines);
 
         /*
@@ -62,17 +70,56 @@ public class MainApp {
          */
         //ArrayList<MikrotikIpService> siteUserArrayList = new ArrayList<MikrotikIpService>(mikrotikIpList.size());
         ArrayList<Thread> threadArrayList = new ArrayList<Thread>();
+        List<MikrotikIpService> mikrotikIpServiceList = new ArrayList<MikrotikIpService>();
         for (MikrotikIp mikrotikIp : mikrotikIpList) {
             logger.info("start: {}", mikrotikIp);
-            Thread thread = new Thread(new MikrotikIpService(mikrotikIp));
-            thread.start();
-            threadArrayList.add(thread);
+            MikrotikIpService mikrotikIpService = new MikrotikIpService(mikrotikIp);
+            mikrotikIpServiceList.add(mikrotikIpService);
+            //Thread thread = new Thread(mikrotikIpService);
+            mikrotikIpService.start();
+            //thread.start();
+            //threadArrayList.add(thread);
         }
+        /*
         for (Thread thread : threadArrayList) {
             try {
                 thread.join();
+                thread.
+                //thread.
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+        }
+        */
+        while (mikrotikIpServiceList.size() > 0) {
+            for (int i = 0; i < mikrotikIpServiceList.size(); i++) {
+                MikrotikIpService mikrotikIpService = mikrotikIpServiceList.get(i);
+                if (mikrotikIpService != null && mikrotikIpService.isAlive()) {
+                    logger.info("mik:" + mikrotikIpService.getMikrotikIp().getIp() + " " + (System.currentTimeMillis() - mikrotikIpService.getStartTime()) + " " + mikrotikIpService.isAlive());
+                    if (mikrotikIpService.isAlive()) {
+                        long jTime = System.currentTimeMillis();
+                        if (mikrotikIpService.isInterrupted() == false
+                                && (jTime - mikrotikIpService.getStartTime()) > 3 * 60 * 1000) {
+                            mikrotikIpService.getMikrotikIp().setInterrupt(true);
+                            mikrotikIpService = null;
+                            logger.info("set3 " + mikrotikIpService.getMikrotikIp().getIp() + " to null: {}", jTime);
+                        }
+                    } else {
+                        mikrotikIpServiceList.remove(i);
+                        i--;
+                        logger.info("set1 " + mikrotikIpService.getMikrotikIp().getIp() + " to null");
+                    }
+                } else {
+                    mikrotikIpServiceList.remove(i);
+                    i--;
+                    logger.info("set2 " + mikrotikIpService.getMikrotikIp().getIp() + " to null");
+                }
+            }
+            try {
+                logger.info("sleeeeep.....");
+                Thread.sleep(10 * 1000);
+            } catch (Exception e) {
+                logger.error(e.toString());
             }
         }
     }
@@ -89,7 +136,8 @@ public class MainApp {
                     // logger.debug("mikIp: {}",mikGroup.get(user.getGroupId()));
                     mikGroup.get(user.getGroupId()).getUsers().add(user);
                 } else {
-                    logger.error("unknown users: {}", user);
+                    //logger.error("unknown users: {}", user);
+                    continue;
                 }
             }
         }

@@ -46,8 +46,6 @@ public class ParseArguments {
                 MainApp.USERNAME = value;
             } else if (param.equals("mik_password")) {
                 MainApp.PASSWORD = value;
-            } else if (param.equals("mik_list")) {
-                MainApp.dropLIST = value;
             } else if (param.equals("db_url")) {
                 MainApp.dbHOSTNAME = value;
             } else if (param.equals("db_name")) {
@@ -79,7 +77,7 @@ public class ParseArguments {
                         logger.error("Ошибка: {}", groupIp[0] + "\n" + e.toString());
                         continue;
                     }
-                    MainApp.mikrotikIpList.add(new MikrotikIp(group, groupIp[1]));
+                    MainApp.mikrotikIpList.add(new MikrotikIp(group, groupIp[1],groupIp[2],groupIp[3],groupIp[4]));
                 }
             }
             logger.info("Param: {}:{}", param, value);
@@ -88,7 +86,7 @@ public class ParseArguments {
 
     private static String[] getGroupIp(String value) {
         String[] groupIp = value.split(":");
-        if (groupIp.length != 2) return null;
+        if (groupIp.length != 5) return null;
         else return groupIp;
     }
 }

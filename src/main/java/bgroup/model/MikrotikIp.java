@@ -10,12 +10,45 @@ import java.util.List;
 public class MikrotikIp {
     Integer goupId;
     String ip;
+    String userName;
+    String password;
+    String listName;
     List<UserFromUtm> users;
+    boolean isInterrupt = false;
 
-    public MikrotikIp(Integer goupId, String ip) {
+
+    public MikrotikIp(Integer goupId, String ip,String userName, String password,String listName) {
         this.goupId = goupId;
         this.ip = ip;
-        users = new LinkedList<UserFromUtm>();
+        this.userName = userName;
+        this.password = password;
+        this.listName = listName;
+        this.users = new LinkedList<UserFromUtm>();
+
+    }
+
+    public String getListName() {
+        return listName;
+    }
+
+    public void setListName(String listName) {
+        this.listName = listName;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public List<UserFromUtm> getUsers() {
@@ -40,6 +73,14 @@ public class MikrotikIp {
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    public boolean isInterrupt() {
+        return isInterrupt;
+    }
+
+    public void setInterrupt(boolean interrupt) {
+        isInterrupt = interrupt;
     }
 
     @Override
