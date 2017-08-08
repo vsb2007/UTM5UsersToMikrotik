@@ -49,16 +49,38 @@ public class MikrotikIpService extends Thread {
     }
 
     void checkListAllowTraffic() {
+        String commandsForMik = "";
         if (!mikrotikIp.isInterrupt()) {
-            String command = " /ip firewall address-list print terse  where  list~\"" + mikrotikIp.getListName() + "\"";
-            String linesFirewallList = getListFromMikrotik(mikrotikIp, command);
-            command = "queue simple print terse";
-            String linesQ = getListFromMikrotik(mikrotikIp, command);
+            String commandOne = " /ip firewall address-list print terse  where  list~\"" + mikrotikIp.getListName() + "\"";
+            String linesFirewallList = getLinesResponseFromMikrotik(mikrotikIp, commandOne);
+            commandOne = "queue simple print terse";
+            String linesQ = getLinesResponseFromMikrotik(mikrotikIp, commandOne);
             //logger.debug(linesQ);
             UsersFromMikService usersFromMik = new UsersFromMikService(linesFirewallList, linesQ, mikrotikIp.getListName());
-            String commandForMik = getCommandForMik(usersFromMik);
-            logger.debug("\n" + commandForMik);
+            commandsForMik = getCommandForMik(usersFromMik);
+            //logger.debug("\n" + commandsForMik);
         }
+        String[] commands = commandsForMik.split("\n");
+        int count = 0;
+        String command = "";
+        for (int i = 0; i < commands.length; i++) {
+            if (mikrotikIp.isInterrupt()) {
+                break;
+            }
+            command += commands[i] + "\n";
+            count++;
+            if (count % 100 == 0) {
+                getLinesResponseFromMikrotik(mikrotikIp, command);
+                logger.debug("100:");
+                logger.debug(command);
+                command = "";
+                continue;
+            }
+
+        }
+        logger.debug("last:");
+        logger.debug(command);
+        getLinesResponseFromMikrotik(mikrotikIp, command);
 /*
         for (UserFromUtm user : mikrotikIp.getUsers()) {
             if (!mikrotikIp.isInterrupt())
@@ -84,11 +106,29 @@ public class MikrotikIpService extends Thread {
             try {
                 if (usersM != null && usersM.containsKey(userU.getId()) && usersM.get(userU.getId()).getSpeedLimit() != null
                         && userU.getSpeedLimit() != null) {
-                    if (userU.getSpeedLimit().intValue() != usersM.get(userU.getId()).getSpeedLimit().intValue()) {
-                        command.append("/queue simple remove numbers=[find comment=" + userU.getId() + "]\n" +
-                                "/queue simple add name=" + userU.getId() + " target=" + userU.getIp() + "/" +
-                                userU.getMask() + " max-limit=" + userU.getSpeedLimit() + "K/" + userU.getSpeedLimit() + "K" +
-                                " comment=" + userU.getId() + "\n");
+                    if (usersM.get(userU.getId()).getIpF() != null && usersM.get(userU.getId()).getIpQ() != null) {
+                    /*
+                    проверяем Ip
+                     */
+                        if (!usersM.get(userU.getId()).getIpF().equals(userU.getIp()) || !usersM.get(userU.getId()).getIpQ().equals(userU.getIp())) {
+
+                            command.append("/queue simple remove numbers=[find comment=" + userU.getId() + "]\n");
+                            command.append("/queue simple add name=" + userU.getId() + " target=" + userU.getIp() + "/" +
+                                    userU.getMask() + " max-limit=" + userU.getSpeedLimit() + "K/" + userU.getSpeedLimit() + "K" +
+                                    " comment=" + userU.getId() + "\n");
+                            command.append("/ip firewall address-list remove numbers=[find comment=" + userU.getId() + "]\n");
+                            command.append("/ip firewall address-list add address=" + userU.getIp() + "/" + userU.getMask() +
+                                    " list=" + mikrotikIp.getListName() + " comment=" + userU.getId() + "\n");
+                        }
+                    /*
+                    проверяем скорости
+                     */
+                        if (usersM.get(userU.getId()).getSpeedLimit().intValue() != userU.getSpeedLimit().intValue()) {
+                            command.append("/queue simple remove numbers=[find comment=" + userU.getId() + "]\n");
+                            command.append("/queue simple add name=" + userU.getId() + " target=" + userU.getIp() + "/" +
+                                    userU.getMask() + " max-limit=" + userU.getSpeedLimit() + "K/" + userU.getSpeedLimit() + "K" +
+                                    " comment=" + userU.getId() + "\n");
+                        }
                     }
                     usersM.remove(userU.getId());
                     //continue;
@@ -112,15 +152,16 @@ public class MikrotikIpService extends Thread {
                     usersM.remove(userU.getId());
                 }
             /*
-            есть совпадения и скорости - проверяем совпадение скоростпей и ip
+            есть совпадения - проверяем совпадение ip
              */
-                else if (usersM.containsKey(userU.getId()) && usersM.get(userU.getId()).getSpeedLimit() != null
-                        && userU.getSpeedLimit() != null) {
+                else if (usersM.containsKey(userU.getId()) && usersM.get(userU.getId()).getSpeedLimit() == null
+                        && userU.getSpeedLimit() == null) {
+                    //command.append("/queue simple remove numbers=[find comment=" + userU.getId() + "]\n");
                     if (usersM.get(userU.getId()).getIpF() != null && usersM.get(userU.getId()).getIpQ() != null) {
                     /*
                     проверяем Ip
                      */
-                        if (usersM.get(userU.getId()).getIpF() != userU.getIp() || usersM.get(userU.getId()).getIpQ() != userU.getIp()) {
+                        if (!usersM.get(userU.getId()).getIpF().equals(userU.getIp()) || !usersM.get(userU.getId()).getIpQ().equals(userU.getIp())) {
 
                             command.append("/queue simple remove numbers=[find comment=" + userU.getId() + "]\n");
                             command.append("/queue simple add name=" + userU.getId() + " target=" + userU.getIp() + "/" +
@@ -130,21 +171,7 @@ public class MikrotikIpService extends Thread {
                             command.append("/ip firewall address-list add address=" + userU.getIp() + "/" + userU.getMask() +
                                     " list=" + mikrotikIp.getListName() + " comment=" + userU.getId() + "\n");
                         }
-                    /*
-                    проверяем скорости
-                     */
-                        if (usersM.get(userU.getId()).getSpeedLimit() != userU.getSpeedLimit()) {
-                            command.append("/queue simple remove numbers=[find comment=" + userU.getId() + "]\n");
-                            command.append("/queue simple add name=" + userU.getId() + " target=" + userU.getIp() + "/" +
-                                    userU.getMask() + " max-limit=" + userU.getSpeedLimit() + "K/" + userU.getSpeedLimit() + "K" +
-                                    " comment=" + userU.getId() + "\n");
-                        }
                     }
-                    usersM.remove(userU.getId());
-
-                } else if (usersM.containsKey(userU.getId()) && usersM.get(userU.getId()).getSpeedLimit() == null
-                        && userU.getSpeedLimit() == null) {
-                    command.append("/queue simple remove numbers=[find comment=" + userU.getId() + "]\n");
                     usersM.remove(userU.getId());
                 } else if (!usersM.containsKey(userU.getId())) {
                     command.append("/queue simple remove numbers=[find comment=" + userU.getId() + "]\n" +
@@ -166,7 +193,7 @@ public class MikrotikIpService extends Thread {
         return command.toString();
     }
 
-    private String getListFromMikrotik(MikrotikIp mikrotikIp, String command) {
+    private String getLinesResponseFromMikrotik(MikrotikIp mikrotikIp, String command) {
         SshClient manager = new SshClient();
         String lines = manager.getResponseFromHost(mikrotikIp, command);
         return lines;

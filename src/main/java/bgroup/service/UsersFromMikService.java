@@ -17,6 +17,7 @@ public class UsersFromMikService {
 
     public UsersFromMikService(String linesFirewallList, String stringQ, String listName) {
         logger.info("start UsersFromMikService\n");
+        if (linesFirewallList == null) return;
         String[] stringsF = linesFirewallList.split("\n");
         for (String str : stringsF) {
             UserFromMik userFromMik = getUserFromMikFromFLString(str);

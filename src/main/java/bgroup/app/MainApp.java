@@ -99,9 +99,10 @@ public class MainApp {
                     if (mikrotikIpService.isAlive()) {
                         long jTime = System.currentTimeMillis();
                         if (mikrotikIpService.isInterrupted() == false
-                                && (jTime - mikrotikIpService.getStartTime()) > 3 * 60 * 1000) {
+                                && (jTime - mikrotikIpService.getStartTime()) > 4 * 60 * 1000) {
                             mikrotikIpService.getMikrotikIp().setInterrupt(true);
-                            mikrotikIpService = null;
+                            mikrotikIpService.interrupt();
+                            //mikrotikIpService = null;
                             logger.info("set3 " + mikrotikIpService.getMikrotikIp().getIp() + " to null: {}", jTime);
                         }
                     } else {
