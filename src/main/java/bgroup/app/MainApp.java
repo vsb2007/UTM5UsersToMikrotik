@@ -32,15 +32,7 @@ public class MainApp {
     public static List<MikrotikIp> mikrotikIpList = new LinkedList<MikrotikIp>();
 
     public static void main(String[] args) {
-        /*
-        String str = "*89503367777 отец";
-        str = str.trim().replaceAll(" |\\-|\\.", "");
-        str = str.replaceAll("[^0-9]","");
 
-        System.out.println(str);
-
-        System.exit(-1);
-        */
         try {
             ParseArguments.parseArguments(args[0]);
         } catch (Exception e) {
