@@ -119,16 +119,21 @@ public class SshClient {
                     logger.info("exit-status: " + exitStatus);
                 break;
             }
-            trySleep(1000);
+            if (!trySleep(1000)){
+
+                break;
+            }
         }
         return result.toString();
     }
 
-    private void trySleep(int sleepTimeInMilliseconds) {
+    private boolean trySleep(int sleepTimeInMilliseconds) {
         try {
             Thread.sleep(sleepTimeInMilliseconds);
         } catch (Exception e) {
             logger.error(e.toString());
+            return false;
         }
+        return true;
     }
 }

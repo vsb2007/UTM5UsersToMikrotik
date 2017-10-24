@@ -84,7 +84,8 @@ public class MainApp {
         }
         */
         while (mikrotikIpServiceList.size() > 0) {
-            for (int i = 0; i < mikrotikIpServiceList.size(); i++) {
+            int size = mikrotikIpServiceList.size();
+            for (int i = size - 1; i >= 0; i--) {
                 MikrotikIpService mikrotikIpService = mikrotikIpServiceList.get(i);
                 if (mikrotikIpService != null && mikrotikIpService.isAlive()) {
                     logger.info("mik:" + mikrotikIpService.getMikrotikIp().getIp() + " " + (System.currentTimeMillis() - mikrotikIpService.getStartTime()) + " " + mikrotikIpService.isAlive());
@@ -99,14 +100,15 @@ public class MainApp {
                         }
                     } else {
                         mikrotikIpServiceList.remove(i);
-                        i--;
+                        //i--;
                         logger.info("set1 " + mikrotikIpService.getMikrotikIp().getIp() + " to null");
                     }
                 } else {
                     mikrotikIpServiceList.remove(i);
-                    i--;
+                    //i--;
                     logger.info("set2 " + mikrotikIpService.getMikrotikIp().getIp() + " to null");
                 }
+                //size = mikrotikIpServiceList.size();
             }
             try {
                 logger.info("sleeeeep.....");
